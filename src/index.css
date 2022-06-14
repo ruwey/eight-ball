@@ -1,34 +1,7 @@
-body {
-    text-align: left;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-.cell {
-  background: #fff;
-  border: 1px solid #999;
-  float: left;
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 34px;
-  height: 34px;
-  margin-right: -1px;
-  margin-top: -1px;
-  padding: 0;
-  text-align: center;
-  width: 34px;
-}
-
-.cell:hover {
-    background: #F0F;
-}
-
-.game {
-    display: flex;
-    flex-direction: column;
-
-}
-
-.board-row:after {
-  clear: both;
-  content: "";
-  display: table;
-}
+.X { @apply bg-red-500 border-red-200 }
+.O { @apply bg-blue-500 border-blue-200 }
+.n {}

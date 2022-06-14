@@ -5,7 +5,8 @@ import './index.css';
 
 function Square(props) {
   return (
-    <button className="cell" onClick={props.onClick}>
+    <button className={`${props.value? props.value == "X"? 'X': 'O':'n'} w-[3rem] h-[3rem] text-3xl border-2 rounded shadow` }
+            onClick={props.onClick}>
       {props.value}
     </button>
   );
@@ -14,14 +15,19 @@ function Square(props) {
 function Commit(props) {
   if (props.props.played) {
     return (
-      <button onClick={() => returnToSender(props.props)} >Commit Move</button>
+      <button className='bg-green-500 border-2 border-green-200 rounded m-4 py-1 px-2'
+      onClick={() => returnToSender(props.props)} >
+        Commit Move
+      </button>
     )
   }
   return (<p></p>);
 }
 
 function returnToSender(p) {
-  let url = "http://localhost:3000/return/"+params.get('id')+"/"+p.squares.slice().map((i) => {if (i==null) return 'N'; else return i}).join('')+"/"+(p.xIsNext? 'X':'O');
+  let newSquares = p.squares.slice();
+  newSquares[p.sel] = p.player;
+  let url = "http://localhost:3000/return/"+params.get('id')+"/"+newSquares.map((i) => {if (i==null) return 'N'; else return i}).join('')+"/"+(p.xIsNext? 'X':'O');
   window.location.assign(url);
 }
 
@@ -30,18 +36,16 @@ class Board extends React.Component {
     super(props);
     this.state = {
       squares: params.get('pos').split('').map((i) => {if (i === 'N') return null; else return i} ),
-      xIsNext: params.get('turn') === 'X',
+      sel: null,
+      player: params.get('turn'),
       played: false
     };
   }
 
   handleClick(i) {
-    const squares = this.state.squares.slice();
-    if (squares[i] || this.state.played || calculateWinner(squares)) return;
-    squares[i] = this.state.xIsNext ? 'X' : 'O';
+    if (this.state.squares[i] || calculateWinner(this.state.squares)) return;
     this.setState({
-      squares: squares,
-      xIsNext: !this.state.xIsNext,
+      sel: i,
       played: true
     });
   }
@@ -49,40 +53,37 @@ class Board extends React.Component {
   renderSquare(i) {
     return (
       <Square
-        value={this.state.squares[i]}
+        num={i}
+        value={(this.state.sel != i)? this.state.squares[i] : this.state.player}
         onClick={() => this.handleClick(i)}
       />
     );
   }
 
   render() {
-    const status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+    const status = 'Next player: ' + (this.state.player);
 
     if (calculateWinner(this.state.squares)) {
-      fetch('http://localhost:3000/win/' + params.get('id') + '/' + (this.state.xIsNext? 'X':'O'))
+      fetch('http://localhost:3000/win/' + params.get('id') + '/' + (this.state.player))
       return (
         <h1>Congratultions Player {calculateWinner(this.state.squares)}!!!</h1>
       )
     }
 
     return (
-      <div>
-        <div className="board-row">
+      <div className='flex flex-col place-items-center h-screen pt-5'>
+        <div className='inline-grid grid-cols-3 gap-3 max-w-fit'>
           {this.renderSquare(0)}
           {this.renderSquare(1)}
           {this.renderSquare(2)}
-        </div>
-        <div className="board-row">
           {this.renderSquare(3)}
           {this.renderSquare(4)}
           {this.renderSquare(5)}
-        </div>
-        <div className="board-row">
           {this.renderSquare(6)}
           {this.renderSquare(7)}
           {this.renderSquare(8)}
         </div>
-      <Commit props={this.state} />
+        <Commit props={this.state} />
       </div>
     );
   }
@@ -91,8 +92,8 @@ class Board extends React.Component {
 class Game extends React.Component {
   render() {
     return (
-      <div className="game">
-        <div className="game-board">
+      <div>
+        <div>
           <Board />
         </div>
       </div>
@@ -106,8 +107,7 @@ const params = new URLSearchParams(window.location.search);
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <div>
-    <h1>Game Penguin</h1>
-    <hr/>
+    <h1 className='text-3xl font-bold bg-red-100 text-center py-2'>Game Penguin</h1>
     <Game />
   </div>
 );
